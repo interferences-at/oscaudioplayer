@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Media Player</title>
+	<style>
+	    * {
+		box-sizing: border-box;
+	      }
+
+	      video, img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+	      }
+
+	      .zeroOpacity{
+		opacity: 0;
+		visibility: hidden;
+	      }
+
+	      body{
+		background-color: black
+	      }
+	  </style>
+        <meta charset="UTF-8" />
+        <script src="node_modules/jquery/dist/jquery.js"></script>
+        <script src="node_modules/osc/dist/osc-browser.min.js"></script>
+        <script src="../config.js"></script>
+        <script src="playlist.js"></script>
+        <script src="volumes.js"></script>
+        <script type="text/javascript">
+            var CurrentMedia = -1;
+
+            //var volumesData = JSON.parse(Volumes);
+
+            var Audios = [];
+
+            var trackCount = Math.max(NB_TRACKS, Volumes.length)
+
+            for(var i = 0; i < trackCount; ++i)
+            {
+            	var audio = document.createElement('audio');
+
+            	audio.volume = Volumes[i];
+
+                Audios.push(audio);
+            }
+
+            //var outPort = new osc.WebSocketPort({
+            //    url: "ws://127.0.0.1:7500"
+            //});
+
+            var isNumber = function isNumber(value) 
+			{
+				var type = typeof value;
+				var finite = isFinite(value);
+
+			    return type === 'number' && finite;
+			};
+
+            var ensureEnoughTracks = function (trackIndex)
+            {
+                if(trackIndex >= Audios.length)
+                {
+                    var missing = (trackIndex - Audios.length) + 1;
+
+                    for(var i = 0; i < missing; ++i)
+                    {
+                        var audio = document.createElement('audio');
+
+                        audio.volume = 1;
+
+                        Audios.push(audio);
+                    }
+                }
+            };
+
+            var port = new osc.WebSocketPort({
+                url: "ws://127.0.0.1:8081"
+            });
+
+            port.on("message", function (oscMessage)
+            {
+                //$("#message").text(JSON.stringify(oscMessage, undefined, 2));
+                //console.log("message", oscMessage);
+
+                var addressTokens = oscMessage.address.split("/");
+
+                if(addressTokens.length == 0 || addressTokens[1] != PROJECT)
+                	return;
+
+                var params = undefined;
+
+                if('args' in oscMessage && oscMessage.args != undefined && 
+                	typeof oscMessage.args == 'object' && oscMessage.args.constructor == Array &&
+                	oscMessage.args.length > 0)
+                {
+                	params = oscMessage.args
+                }
+
+                if(addressTokens.length > 1)
+                {
+                	var track = parseInt(addressTokens[2]);
+
+                	if(!isNumber(track))
+                		return;
+
+                	if(addressTokens.length > 2)
+                	{
+                		//Play
+                		var commmand = addressTokens[3];
+
+                		if(commmand == 'loop')
+                		{
+                			if(NB_TRACKS > track)
+                			{
+                				var loop = false;
+
+                				var loopValue = parseInt(params[0], 10);
+
+                				if(loopValue == 1)
+                					loop = true;
+
+                				Audios[track].loop == loop;
+
+                				//console.log("Setting track " + track + " on loop " + (loop ? 'true' : 'false'))
+                			}
+                			else
+                			{
+                				//console.log("Cannot set loop on track " + track + ". Max track is " + NB_TRACKS);
+                			}
+                		}
+                		else 
+        				{
+        					if(addressTokens.length == 3)//Stop or volume...
+        					{
+								var paramNumber = parseFloat(params[0], 10);
+
+								if(paramNumber == 0)
+								{
+									if(Audios.length > track && Audios[track].src != "")
+									{
+										Audios[track].pause();
+										Audios[track].currentTime = 0;
+										SendAcknowledge(track, 0);
+									}	
+
+									//console.log("Stopping track " + track);
+								}
+								else
+								{
+                                    ensureEnoughTracks(track);
+									Audios[track].volume = paramNumber
+
+									//console.log("Changing track " + track + " volume to " + paramNumber);
+								}
+        					}
+        					else if(addressTokens.length == 4) //Play
+        					{
+        						var paramNumber = parseInt(commmand, 10);
+
+	        					if(isNumber(paramNumber))
+	        					{
+		        					//commmand is fileIndex
+                                    ensureEnoughTracks(track);
+
+                                    if(paramNumber < PlayList.length)
+                                    {
+                                        Audios[track].src = "../medias/" + PlayList[paramNumber];
+    		        					Audios[track].play();
+    		        					SendAcknowledge(track, 1);
+    		        					//console.log("play file " + paramNumber + " on track " + track);
+                                    }
+		        				}
+		        			}
+        				}
+                		
+                	}
+                }
+            });
+
+            port.open();
+
+            var SendAcknowledge = function (track, status)
+            {
+                port.send({
+                    address: "/" + PROJECT + "/" + track,
+                    args: [status]
+                });
+            }           
+
+        </script>
+    </head>
+
+    <body>
+    </body>
+</html>
