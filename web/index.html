@@ -32,8 +32,6 @@
         <script type="text/javascript">
             var CurrentMedia = -1;
 
-            //var volumesData = JSON.parse(Volumes);
-
             var Audios = [];
 
             var trackCount = Math.max(NB_TRACKS, Volumes.length)
@@ -46,10 +44,15 @@
 
                 Audios.push(audio);
             }
-
-            //var outPort = new osc.WebSocketPort({
-            //    url: "ws://127.0.0.1:7500"
-            //});
+	    
+	    //Autoplay
+	    
+	    for(var i = 0; i < AUTOPLAY.length; ++i)
+	    {
+		Audios[i].src = "../medias/" + PlayList[AUTOPLAY[i]];
+		Audios[i].loop = true;
+		Audios[i].play();
+	    }
 
             var isNumber = function isNumber(value) 
 			{
@@ -185,7 +188,7 @@
             var SendAcknowledge = function (track, status)
             {
                 port.send({
-                    address: "/" + PROJECT + "/" + track,
+                    address: "/" + PROJECT + "/" + ID + "/" + track,
                     args: [status]
                 });
             }           

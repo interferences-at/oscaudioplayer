@@ -1,5 +1,5 @@
 var ID=12;
-var AUTOPLAY = true;
-var PROJECT = "test";
+var PROJECT = "MyProject";
 var Loop = false;
 var NB_TRACKS = 4;
+var AUTOPLAY = [];

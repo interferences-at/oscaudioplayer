@@ -3,10 +3,10 @@ unclutter -idle 2 &
 
 sleep 5
 
-xdotool windowminimize $(xdotool getactivewindow)
+#xdotool windowminimize $(xdotool getactivewindow)
 
 cd /home/pi/oscaudioplayer
-node .
+node . &
 
 sleep 3
 
