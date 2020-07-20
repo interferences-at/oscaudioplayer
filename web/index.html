@@ -94,12 +94,18 @@
                 	return;
 
                 var params = undefined;
+                var paramNumber = 0;
 
                 if('args' in oscMessage && oscMessage.args != undefined && 
                 	typeof oscMessage.args == 'object' && oscMessage.args.constructor == Array &&
                 	oscMessage.args.length > 0)
                 {
                 	params = oscMessage.args
+
+                    if(params.length > 0)
+                    {
+                        paramNumber =  parseInt(params[0], 10);
+                    }
                 }
 
                 if(addressTokens.length > 1)
@@ -120,9 +126,7 @@
                 			{
                 				var loop = false;
 
-                				var loopValue = parseInt(params[0], 10);
-
-                				if(loopValue == 1)
+                				if(paramNumber == 1)
                 					loop = true;
 
                 				Audios[track].loop == loop;
@@ -138,8 +142,6 @@
         				{
         					if(addressTokens.length == 3)//Stop or volume...
         					{
-								var paramNumber = parseFloat(params[0], 10);
-
 								if(paramNumber == 0)
 								{
 									if(Audios.length > track && Audios[track].src != "")
@@ -161,16 +163,17 @@
         					}
         					else if(addressTokens.length == 4) //Play
         					{
-        						var paramNumber = parseInt(commmand, 10);
+        						var songIndex = parseInt(commmand, 10);
 
-	        					if(isNumber(paramNumber))
+	        					if(isNumber(songIndex))
 	        					{
 		        					//commmand is fileIndex
                                     ensureEnoughTracks(track);
 
-                                    if(paramNumber < PlayList.length)
+                                    if(songIndex < PlayList.length)
                                     {
-                                        Audios[track].src = "../medias/" + PlayList[paramNumber];
+                                        Audios[track].src = "../medias/" + PlayList[songIndex];
+                                        var loop = paramNumber == 2 ? true : false;
     		        					Audios[track].play();
     		        					SendAcknowledge(track, 1);
     		        					//console.log("play file " + paramNumber + " on track " + track);
