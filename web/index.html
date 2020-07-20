@@ -170,9 +170,9 @@
 		        					//commmand is fileIndex
                                     ensureEnoughTracks(track);
 
-                                    if(songIndex < PlayList.length)
+                                    if(songIndex > 0 && songIndex <= PlayList.length)
                                     {
-                                        Audios[track].src = "../medias/" + PlayList[songIndex];
+                                        Audios[track].src = "../medias/" + PlayList[songIndex - 1];
                                         var loop = paramNumber == 2 ? true : false;
     		        					Audios[track].play();
     		        					SendAcknowledge(track, 1);
