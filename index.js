@@ -144,7 +144,7 @@ udp.on("message", function (oscMsg, timeTag, info) {
 						}
 					}
 
-					Volumes.Volumes[track] = paramNumber;
+					Volumes.Volumes[track] = Math.min(Math.max(paramNumber, 0), 1);
 
 					writeVolumes();
 
